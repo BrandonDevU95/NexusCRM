@@ -33,10 +33,11 @@
 
 - [x] Generate `package-lock.json` with `npm install --package-lock-only`.
 - [x] Run `npm audit --json` and confirm zero vulnerabilities.
-- [ ] Run `npm install`.
-- [ ] Run `docker compose up -d`.
-- [ ] Run `npm run db:generate`.
-- [ ] Run `npm run db:migrate`.
-- [ ] Run `npm run db:seed`.
-- [ ] Run `npm run typecheck`.
+- [x] Run `npm install`.
+- [x] Run `docker compose up -d`.
+- [x] Run `npm run db:generate`.
+- [x] Run `npm run db:migrate`.
+- [x] Run `npm run db:seed`.
+- [x] Run `npm run typecheck`.
+- [x] Smoke test API health endpoint, Swagger docs and web homepage.
 - [ ] Run tests when test files exist.
