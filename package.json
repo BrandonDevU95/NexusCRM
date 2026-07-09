@@ -1,0 +1,41 @@
+{
+  "name": "nexuscrm",
+  "version": "0.1.0",
+  "private": true,
+  "packageManager": "npm@11.6.2",
+  "workspaces": [
+    "apps/*",
+    "packages/*"
+  ],
+  "scripts": {
+    "dev": "npm run dev --workspaces --if-present",
+    "dev:api": "npm run dev -w @nexuscrm/api",
+    "dev:web": "npm run dev -w @nexuscrm/web",
+    "build": "npm run build --workspaces --if-present",
+    "lint": "npm run lint --workspaces --if-present",
+    "typecheck": "npm run typecheck --workspaces --if-present",
+    "test": "npm run test --workspaces --if-present",
+    "test:coverage": "npm run test:coverage --workspaces --if-present",
+    "db:generate": "npm run db:generate -w @nexuscrm/api",
+    "db:migrate": "npm run db:migrate -w @nexuscrm/api",
+    "db:studio": "npm run db:studio -w @nexuscrm/api",
+    "db:seed": "npm run db:seed -w @nexuscrm/api",
+    "db:seed:reset": "npm run db:seed:reset -w @nexuscrm/api",
+    "format": "prettier --write .",
+    "format:check": "prettier --check ."
+  },
+  "overrides": {
+    "@esbuild-kit/core-utils": {
+      "esbuild": "0.28.1"
+    },
+    "esbuild": "0.28.1",
+    "next@16.2.10": {
+      "postcss": "8.5.16"
+    },
+    "postcss": "8.5.16"
+  },
+  "devDependencies": {
+    "prettier": "3.9.5",
+    "typescript": "7.0.2"
+  }
+}

@@ -1,0 +1,22 @@
+services:
+  postgres:
+    image: postgres:17-alpine
+    container_name: nexuscrm-postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: nexus
+      POSTGRES_PASSWORD: nexus
+      POSTGRES_DB: nexuscrm
+    ports:
+      - "5432:5432"
+    volumes:
+      - nexuscrm_postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U nexus -d nexuscrm"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+volumes:
+  nexuscrm_postgres_data:
+
