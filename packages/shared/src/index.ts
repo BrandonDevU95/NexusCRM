@@ -1,3 +1,2 @@
-export * from './modules';
-export * from './permissions';
-
+export * from './modules.js';
+export * from './permissions.js';

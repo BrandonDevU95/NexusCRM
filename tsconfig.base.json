@@ -8,11 +8,9 @@
     "exactOptionalPropertyTypes": true,
     "forceConsistentCasingInFileNames": true,
     "skipLibCheck": true,
-    "baseUrl": ".",
     "paths": {
-      "@nexuscrm/shared": ["packages/shared/src/index.ts"],
-      "@nexuscrm/shared/*": ["packages/shared/src/*"]
+      "@nexuscrm/shared": ["./packages/shared/src/index.ts"],
+      "@nexuscrm/shared/*": ["./packages/shared/src/*"]
     }
   }
 }
-
