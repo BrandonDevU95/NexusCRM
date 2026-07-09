@@ -1,0 +1,31 @@
+export const backendModules = [
+  'auth',
+  'authorization',
+  'users',
+  'organizations',
+  'settings',
+  'customers',
+  'contacts',
+  'leads',
+  'pipelines',
+  'deals',
+  'activities',
+  'tasks',
+  'products',
+  'price-lists',
+  'quotes',
+  'orders',
+  'inventory',
+  'tickets',
+  'knowledge-base',
+  'automations',
+  'notifications',
+  'reports',
+  'imports',
+  'exports',
+  'audit-log',
+  'admin',
+] as const;
+
+export type BackendModuleName = (typeof backendModules)[number];
+
