@@ -1,5 +1,5 @@
 import 'reflect-metadata';
-import cookieParser from 'cookie-parser';
+import cookieParser = require('cookie-parser');
 import { ValidationPipe } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { NestFactory } from '@nestjs/core';
@@ -42,4 +42,3 @@ async function bootstrap() {
 }
 
 void bootstrap();
-

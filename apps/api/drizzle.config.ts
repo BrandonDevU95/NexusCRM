@@ -1,5 +1,7 @@
-import 'dotenv/config';
 import { defineConfig } from 'drizzle-kit';
+import { loadApiEnv } from './src/config/load-env';
+
+loadApiEnv();
 
 export default defineConfig({
   schema: './src/database/schema/index.ts',
@@ -11,4 +13,3 @@ export default defineConfig({
   strict: true,
   verbose: true,
 });
-

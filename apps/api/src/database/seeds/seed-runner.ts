@@ -1,12 +1,14 @@
-import 'dotenv/config';
 import { drizzle } from 'drizzle-orm/node-postgres';
 import { Pool } from 'pg';
+import { loadApiEnv } from '../../config/load-env';
 import { seedRuns } from '../schema';
 import * as schema from '../schema';
 import { configureFaker, consoleSeedLogger, createSeedOptions } from './seed-context';
 import { selectSeeds } from './seed-registry';
 
 async function main() {
+  loadApiEnv();
+
   const options = createSeedOptions(process.argv.slice(2));
 
   if (process.env.NODE_ENV === 'production') {
@@ -84,4 +86,3 @@ main().catch((error: unknown) => {
   console.error(error);
   process.exitCode = 1;
 });
-
