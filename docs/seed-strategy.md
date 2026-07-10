@@ -33,10 +33,10 @@ apps/api/src/modules/customers/seeds/
 ## Comandos
 
 ```bash
-npm run db:seed
-npm run db:seed -- --module customers
-npm run db:seed -- --module leads
-npm run db:seed:reset
+pnpm db:seed
+pnpm db:seed -- --module customers
+pnpm db:seed -- --module leads
+pnpm db:seed:reset
 ```
 
 ## Orden recomendado
@@ -75,4 +75,3 @@ Un seed está terminado cuando:
 - No duplica datos al ejecutarse otra vez.
 - Puede ejecutarse aislado si sus dependencias ya existen.
 - Usa datos realistas, pero no datos sensibles reales.
-

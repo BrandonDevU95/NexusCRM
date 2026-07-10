@@ -59,10 +59,10 @@ Antes de cerrar:
 
 ```bash
 git status
-npm run lint
-npm run typecheck
-npm run test
-# npm run build solo cuando se decida cerrar hito o el usuario lo pida
+pnpm lint
+pnpm typecheck
+pnpm test
+# pnpm build solo cuando se decida cerrar hito o el usuario lo pida
 git log --oneline --decorate -10
 ```
 
@@ -127,4 +127,3 @@ Un release debe incluir:
 - Limitaciones conocidas
 - Siguiente hito recomendado
 ```
-

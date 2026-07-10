@@ -1,22 +1,39 @@
 services:
   postgres:
-    image: postgres:17-alpine
-    container_name: nexuscrm-postgres
+    image: ${POSTGRES_IMAGE:?POSTGRES_IMAGE is required}
+    container_name: ${POSTGRES_CONTAINER_NAME:?POSTGRES_CONTAINER_NAME is required}
     restart: unless-stopped
     environment:
-      POSTGRES_USER: nexus
-      POSTGRES_PASSWORD: nexus
-      POSTGRES_DB: nexuscrm
+      POSTGRES_USER: ${POSTGRES_USER:?POSTGRES_USER is required}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?POSTGRES_PASSWORD is required}
+      POSTGRES_DB: ${POSTGRES_DB:?POSTGRES_DB is required}
     ports:
-      - "5432:5432"
+      - "${POSTGRES_PORT:?POSTGRES_PORT is required}:5432"
     volumes:
       - nexuscrm_postgres_data:/var/lib/postgresql/data
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U nexus -d nexuscrm"]
+      test: ["CMD-SHELL", "pg_isready -U $${POSTGRES_USER} -d $${POSTGRES_DB}"]
       interval: 10s
       timeout: 5s
       retries: 5
 
+  pgadmin:
+    image: ${PGADMIN_IMAGE:?PGADMIN_IMAGE is required}
+    container_name: ${PGADMIN_CONTAINER_NAME:?PGADMIN_CONTAINER_NAME is required}
+    restart: unless-stopped
+    depends_on:
+      postgres:
+        condition: service_healthy
+    environment:
+      PGADMIN_DEFAULT_EMAIL: ${PGADMIN_DEFAULT_EMAIL:?PGADMIN_DEFAULT_EMAIL is required}
+      PGADMIN_DEFAULT_PASSWORD: ${PGADMIN_DEFAULT_PASSWORD:?PGADMIN_DEFAULT_PASSWORD is required}
+      PGADMIN_CONFIG_SERVER_MODE: ${PGADMIN_CONFIG_SERVER_MODE:-False}
+      PGADMIN_CONFIG_MASTER_PASSWORD_REQUIRED: ${PGADMIN_CONFIG_MASTER_PASSWORD_REQUIRED:-False}
+    ports:
+      - "${PGADMIN_PORT:?PGADMIN_PORT is required}:80"
+    volumes:
+      - nexuscrm_pgadmin_data:/var/lib/pgadmin
+
 volumes:
   nexuscrm_postgres_data:
-
+  nexuscrm_pgadmin_data:

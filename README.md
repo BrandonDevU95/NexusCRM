@@ -10,7 +10,7 @@ Este repo contiene la foundation inicial del proyecto:
 - API NestJS en `apps/api`.
 - Web Next.js en `apps/web`.
 - Paquete compartido en `packages/shared`.
-- Docker Compose para PostgreSQL.
+- Docker Compose para PostgreSQL y pgAdmin.
 - Drizzle configurado.
 - Seed runner manual, modular e idempotente.
 - Documentación base de arquitectura, Git/SDD, seeds y roadmap.
@@ -19,14 +19,22 @@ Este repo contiene la foundation inicial del proyecto:
 ## Primeros comandos
 
 ```bash
-npm install
+corepack pnpm install
 cp .env.example .env
 docker compose up -d
-npm run db:generate
-npm run db:migrate
-npm run db:seed
-npm run dev
+pnpm db:generate
+pnpm db:migrate
+pnpm db:seed
+pnpm dev
 ```
+
+pgAdmin queda disponible en `http://localhost:5050`. Inicia sesión con
+`PGADMIN_DEFAULT_EMAIL` y `PGADMIN_DEFAULT_PASSWORD` de `.env`, y registra el
+servidor con host `postgres`, puerto `5432` y las credenciales `POSTGRES_*`.
+
+> Si ya inicializaste el volumen de PostgreSQL con otras credenciales, estas no
+> cambian al editar `.env`. Elimina únicamente el volumen local si puedes perder
+> esos datos y necesitas reinicializarlo.
 
 > No ejecutes seeds ni resets contra producción. Sí, parece obvio. También parecía obvio no usar `admin123`.
 
@@ -55,4 +63,3 @@ Cada módulo nuevo debe agregar:
 - Seed modular.
 - Pruebas mínimas.
 - Documentación si introduce reglas nuevas.
-
