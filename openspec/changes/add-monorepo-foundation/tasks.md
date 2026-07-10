@@ -19,7 +19,7 @@
 - [x] Add NestJS API package scaffold.
 - [x] Add health endpoint.
 - [x] Add Swagger bootstrap.
-- [x] Add Drizzle config and minimal foundation schema.
+- [x] Add TypeORM config, minimal foundation entities and an initial migration.
 - [x] Add seed runner base.
 - [x] Add placeholders for planned modules.
 

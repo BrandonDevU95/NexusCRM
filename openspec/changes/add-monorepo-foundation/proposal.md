@@ -13,7 +13,7 @@ The project scope includes 23 modules. Implementing them without a foundation wo
 - Create monorepo structure.
 - Add API/web/shared package scaffolding.
 - Configure Docker Compose for PostgreSQL.
-- Configure Drizzle foundation.
+- Configure TypeORM foundation.
 - Add seed runner base.
 - Add documentation for architecture, Git workflow, seeds and roadmap.
 - Add backend module placeholders and frontend feature placeholders.
@@ -29,4 +29,3 @@ The project scope includes 23 modules. Implementing them without a foundation wo
 ## Rollback
 
 Remove the scaffolded directories/files from this change and return to the empty repo state on `main`.
-

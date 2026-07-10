@@ -1,6 +1,6 @@
 # NexusCRM
 
-NexusCRM es un CRM modular fullstack diseñado como modular monolith con Next.js, NestJS, PostgreSQL, Drizzle, seeds modulares y flujo Git/SDD.
+NexusCRM es un CRM modular fullstack diseñado como modular monolith con Next.js, NestJS, PostgreSQL, TypeORM, seeds modulares y flujo Git/SDD.
 
 ## Estado actual
 
@@ -11,7 +11,7 @@ Este repo contiene la foundation inicial del proyecto:
 - Web Next.js en `apps/web`.
 - Paquete compartido en `packages/shared`.
 - Docker Compose para PostgreSQL y pgAdmin.
-- Drizzle configurado.
+- TypeORM configurado con entidades y migraciones explícitas.
 - Seed runner manual, modular e idempotente.
 - Documentación base de arquitectura, Git/SDD, seeds y roadmap.
 - Esqueletos de módulos backend y features frontend para el alcance completo.
@@ -22,7 +22,6 @@ Este repo contiene la foundation inicial del proyecto:
 corepack pnpm install
 cp .env.example .env
 docker compose up -d
-pnpm db:generate
 pnpm db:migrate
 pnpm db:seed
 pnpm dev
@@ -55,7 +54,7 @@ git checkout -b sdd/add-monorepo-foundation
 
 Cada módulo nuevo debe agregar:
 
-- Schema/migración.
+- Entidades/migraciones.
 - Controller/service/repository.
 - DTOs y validaciones.
 - Policies/permisos.

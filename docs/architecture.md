@@ -10,7 +10,7 @@ NexusCRM será un CRM modular fullstack construido como **modular monolith**. La
 Frontend: Next.js
 Backend: NestJS
 DB: PostgreSQL
-ORM/query builder: Drizzle
+ORM: TypeORM
 Auth: propia con cookies HttpOnly
 Autorización: RBAC + permisos + CASL
 UI: Tailwind CSS + shadcn/ui
@@ -73,7 +73,7 @@ Responsabilidades:
 
 - Controller: HTTP, auth guards, DTOs, status codes.
 - Service: reglas de negocio y casos de uso.
-- Repository: acceso a datos con Drizzle.
+- Repository: acceso a datos mediante repositorios y QueryBuilder de TypeORM.
 - Policies: reglas CASL y permisos por recurso.
 - Events: eventos de dominio para auditoría, notificaciones y automatizaciones.
 - Seeds: datos demo idempotentes del módulo.
@@ -126,4 +126,3 @@ Responsabilidades:
 21. Importación y exportación
 22. Auditoría y logs
 23. Administración del sistema
-

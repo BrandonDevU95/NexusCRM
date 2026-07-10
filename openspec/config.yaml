@@ -1,7 +1,7 @@
 schema: spec-driven
 
 context: |
-  Tech stack: TypeScript monorepo with NestJS API, Next.js web, PostgreSQL and Drizzle.
+  Tech stack: TypeScript monorepo with NestJS API, Next.js web, PostgreSQL and TypeORM.
   Architecture: modular monolith backend, feature-first frontend, shared package for stable constants/types.
   Workflow: Git branches under sdd/*, modular seeds, docs-first changes.
   Quality: Vitest planned for unit/integration tests, typecheck via tsc, formatting via Prettier.

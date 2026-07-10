@@ -16,7 +16,7 @@ Entregable: app levantable localmente.
 - NestJS API.
 - Next.js web.
 - PostgreSQL con Docker Compose.
-- Drizzle.
+- TypeORM.
 - Swagger.
 - Health check.
 - Variables de entorno.
@@ -124,4 +124,3 @@ Lead
   -> Reports
   -> Audit logs
 ```
-
