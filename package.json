@@ -19,21 +19,18 @@
     "test:coverage": "pnpm -r --if-present run test:coverage",
     "db:generate": "pnpm --filter @nexuscrm/api run db:generate",
     "db:migrate": "pnpm --filter @nexuscrm/api run db:migrate",
-    "db:studio": "pnpm --filter @nexuscrm/api run db:studio",
+    "db:migrate:revert": "pnpm --filter @nexuscrm/api run db:migrate:revert",
+    "db:migrate:show": "pnpm --filter @nexuscrm/api run db:migrate:show",
     "db:seed": "pnpm --filter @nexuscrm/api run db:seed",
     "db:seed:reset": "pnpm --filter @nexuscrm/api run db:seed:reset",
     "format": "prettier --write .",
     "format:check": "prettier --check ."
   },
-  "overrides": {
-    "@esbuild-kit/core-utils": {
-      "esbuild": "0.28.1"
-    },
-    "esbuild": "0.28.1",
-    "next@16.2.10": {
+  "pnpm": {
+    "overrides": {
+      "esbuild": "0.28.1",
       "postcss": "8.5.16"
-    },
-    "postcss": "8.5.16"
+    }
   },
   "devDependencies": {
     "prettier": "3.9.5",

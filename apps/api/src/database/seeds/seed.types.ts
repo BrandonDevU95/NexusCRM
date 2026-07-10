@@ -1,8 +1,5 @@
 import type { Faker } from '@faker-js/faker';
-import type { NodePgDatabase } from 'drizzle-orm/node-postgres';
-import type * as schema from '../schema';
-
-export type SeedDatabase = NodePgDatabase<typeof schema>;
+import type { DataSource } from 'typeorm';
 
 export interface SeedLogger {
   info(message: string): void;
@@ -17,7 +14,7 @@ export interface SeedOptions {
 }
 
 export interface SeedContext {
-  db: SeedDatabase;
+  dataSource: DataSource;
   faker: Faker;
   logger: SeedLogger;
   options: SeedOptions;
@@ -30,4 +27,3 @@ export interface SeedDefinition {
   run(context: SeedContext): Promise<void>;
   reset?(context: SeedContext): Promise<void>;
 }
-

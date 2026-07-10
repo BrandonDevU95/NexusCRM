@@ -1,14 +1,13 @@
-import { drizzle } from 'drizzle-orm/node-postgres';
-import { Pool } from 'pg';
-import { loadApiEnv } from '../../config/load-env';
-import { seedRuns } from '../schema';
-import * as schema from '../schema';
-import { configureFaker, consoleSeedLogger, createSeedOptions } from './seed-context';
+import appDataSource from '../data-source';
+import { SeedRunEntity } from '../entities';
+import {
+  configureFaker,
+  consoleSeedLogger,
+  createSeedOptions,
+} from './seed-context';
 import { selectSeeds } from './seed-registry';
 
 async function main() {
-  loadApiEnv();
-
   const options = createSeedOptions(process.argv.slice(2));
 
   if (process.env.NODE_ENV === 'production') {
@@ -19,13 +18,7 @@ async function main() {
     throw new Error('Seed reset requires ALLOW_DB_RESET=true.');
   }
 
-  const connectionString = process.env.DATABASE_URL;
-  if (!connectionString) {
-    throw new Error('DATABASE_URL is required to run seeds.');
-  }
-
-  const pool = new Pool({ connectionString });
-  const db = drizzle(pool, { schema });
+  await appDataSource.initialize();
   const faker = configureFaker(options.fakerSeed);
   const logger = consoleSeedLogger;
 
@@ -33,11 +26,12 @@ async function main() {
 
   if (seeds.length === 0) {
     logger.warn(`No seeds found for module: ${options.module ?? 'all'}`);
-    await pool.end();
+    await appDataSource.destroy();
     return;
   }
 
-  const context = { db, faker, logger, options };
+  const context = { dataSource: appDataSource, faker, logger, options };
+  const seedRunRepository = appDataSource.getRepository(SeedRunEntity);
 
   try {
     if (options.reset) {
@@ -52,9 +46,8 @@ async function main() {
     for (const seed of seeds) {
       logger.info(`Running seed: ${seed.name}`);
       await seed.run(context);
-      await db
-        .insert(seedRuns)
-        .values({
+      await seedRunRepository.upsert(
+        {
           name: seed.name,
           module: seed.module,
           metadata: {
@@ -62,23 +55,14 @@ async function main() {
             reset: options.reset,
           },
           lastRunAt: new Date(),
-        })
-        .onConflictDoUpdate({
-          target: seedRuns.name,
-          set: {
-            module: seed.module,
-            metadata: {
-              fakerSeed: options.fakerSeed,
-              reset: options.reset,
-            },
-            lastRunAt: new Date(),
-          },
-        });
+        },
+        ['name'],
+      );
     }
 
     logger.info('Seed execution completed.');
   } finally {
-    await pool.end();
+    await appDataSource.destroy();
   }
 }
 

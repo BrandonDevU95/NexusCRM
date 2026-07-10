@@ -1,19 +1,31 @@
-import { eq } from 'drizzle-orm';
-import { organizations, seedRuns, systemSettings } from '../../schema';
+import { In } from 'typeorm';
+import {
+  OrganizationEntity,
+  SeedRunEntity,
+  SystemSettingEntity,
+} from '../../entities';
 import type { SeedDefinition } from '../seed.types';
 
 const DEMO_ORGANIZATION_ID = '00000000-0000-4000-8000-000000000001';
+const FOUNDATION_SETTING_KEYS = [
+  'crm.name',
+  'crm.baseCurrency',
+  'crm.timezone',
+  'numbering.quotes.prefix',
+  'numbering.orders.prefix',
+];
 
 export const foundationSeed: SeedDefinition = {
   name: 'foundation',
   module: 'settings',
   order: 10,
-  async run({ db, logger }) {
+  async run({ dataSource, logger }) {
     const now = new Date();
+    const organizationRepository = dataSource.getRepository(OrganizationEntity);
+    const settingRepository = dataSource.getRepository(SystemSettingEntity);
 
-    await db
-      .insert(organizations)
-      .values({
+    await organizationRepository.upsert(
+      {
         id: DEMO_ORGANIZATION_ID,
         name: 'NexusCRM Demo',
         slug: 'nexus-demo',
@@ -21,21 +33,12 @@ export const foundationSeed: SeedDefinition = {
         currency: 'MXN',
         isActive: true,
         updatedAt: now,
-      })
-      .onConflictDoUpdate({
-        target: organizations.slug,
-        set: {
-          name: 'NexusCRM Demo',
-          timezone: 'America/Mexico_City',
-          currency: 'MXN',
-          isActive: true,
-          updatedAt: now,
-        },
-      });
+      },
+      ['slug'],
+    );
 
-    await db
-      .insert(systemSettings)
-      .values([
+    await settingRepository.upsert(
+      [
         {
           key: 'crm.name',
           value: 'NexusCRM',
@@ -66,20 +69,22 @@ export const foundationSeed: SeedDefinition = {
           description: 'Prefijo de órdenes.',
           updatedAt: now,
         },
-      ])
-      .onConflictDoNothing();
+      ],
+      ['key'],
+    );
 
     logger.info('Foundation seed applied: settings + demo organization.');
   },
-  async reset({ db, logger }) {
-    await db.delete(systemSettings).where(eq(systemSettings.key, 'crm.name'));
-    await db.delete(systemSettings).where(eq(systemSettings.key, 'crm.baseCurrency'));
-    await db.delete(systemSettings).where(eq(systemSettings.key, 'crm.timezone'));
-    await db.delete(systemSettings).where(eq(systemSettings.key, 'numbering.quotes.prefix'));
-    await db.delete(systemSettings).where(eq(systemSettings.key, 'numbering.orders.prefix'));
-    await db.delete(seedRuns).where(eq(seedRuns.name, 'foundation'));
-    await db.delete(organizations).where(eq(organizations.slug, 'nexus-demo'));
+  async reset({ dataSource, logger }) {
+    await dataSource.getRepository(SystemSettingEntity).delete({
+      key: In(FOUNDATION_SETTING_KEYS),
+    });
+    await dataSource
+      .getRepository(SeedRunEntity)
+      .delete({ name: 'foundation' });
+    await dataSource
+      .getRepository(OrganizationEntity)
+      .delete({ slug: 'nexus-demo' });
     logger.warn('Foundation seed reset applied.');
   },
 };
-
