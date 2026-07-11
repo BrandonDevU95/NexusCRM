@@ -40,4 +40,4 @@
 - [x] Run `npm run db:seed`.
 - [x] Run `npm run typecheck`.
 - [x] Smoke test API health endpoint, Swagger docs and web homepage.
-- [ ] Run tests when test files exist.
+- [x] Run tests after foundation test files were added.
