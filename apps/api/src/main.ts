@@ -1,22 +1,40 @@
-import 'reflect-metadata';
-import cookieParser = require('cookie-parser');
-import { ValidationPipe } from '@nestjs/common';
-import { ConfigService } from '@nestjs/config';
-import { NestFactory } from '@nestjs/core';
-import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
-import { AppModule } from './app.module';
+import "reflect-metadata";
+
+import {
+  ClassSerializerInterceptor,
+  Logger,
+  ValidationPipe,
+} from "@nestjs/common";
+import { DocumentBuilder, SwaggerModule } from "@nestjs/swagger";
+import { NestFactory, Reflector } from "@nestjs/core";
+
+import { AppModule } from "./app.module";
+import { ConfigService, ConfigType } from "@nestjs/config";
+import AppConfig from "./config/app.config";
+import { HttpExceptionFilter } from "./common/filters/http-exception.filter";
+import { RequestLoggerInterceptor } from "./common/interceptors/request-logger.interceptor";
+
+import cookieParser = require("cookie-parser");
 
 async function bootstrap() {
-  const app = await NestFactory.create(AppModule);
+  const bootstrapLogger = new Logger("Bootstrap");
+
+  const app = await NestFactory.create(AppModule, {
+    logger: ["error", "warn", "log", "debug"],
+  });
+
   const config = app.get(ConfigService);
+  const env = config.get<ConfigType<typeof AppConfig>>("env");
 
-  const globalPrefix = config.get<string>('API_GLOBAL_PREFIX', 'api/v1');
-  const webOrigin = config.get<string>('WEB_ORIGIN', 'http://localhost:3000');
+  if (!env) {
+    throw new Error('Environment configuration "env" not found');
+  }
 
-  app.setGlobalPrefix(globalPrefix);
+  app.setGlobalPrefix(env.API_GLOBAL_PREFIX);
+  app.useGlobalInterceptors(new ClassSerializerInterceptor(app.get(Reflector)));
   app.use(cookieParser());
   app.enableCors({
-    origin: webOrigin,
+    origin: env.WEB_ORIGIN,
     credentials: true,
   });
   app.useGlobalPipes(
@@ -24,21 +42,31 @@ async function bootstrap() {
       whitelist: true,
       forbidNonWhitelisted: true,
       transform: true,
+      transformOptions: {
+        exposeUnsetFields: true,
+      },
     }),
   );
+  app.useGlobalFilters(new HttpExceptionFilter());
+  app.useGlobalInterceptors(new RequestLoggerInterceptor());
 
   const swaggerConfig = new DocumentBuilder()
-    .setTitle('NexusCRM API')
-    .setDescription('Modular CRM API')
-    .setVersion('0.1.0')
-    .addCookieAuth('access_token')
+    .setTitle("NexusCRM API")
+    .setDescription("Modular CRM API")
+    .setVersion("0.1.0")
+    .addCookieAuth("access_token")
     .build();
 
   const document = SwaggerModule.createDocument(app, swaggerConfig);
-  SwaggerModule.setup(`${globalPrefix}/docs`, app, document);
+  SwaggerModule.setup(`${env.API_GLOBAL_PREFIX}/docs`, app, document);
 
-  const port = config.get<number>('API_PORT', 3001);
-  await app.listen(port);
+  bootstrapLogger.log(`Application starting on port ${env.API_PORT}`);
+  bootstrapLogger.log(`Global prefix: /${env.API_GLOBAL_PREFIX}`);
+
+  await app.listen(env.API_PORT);
+  bootstrapLogger.log(
+    `Application is running on http://localhost:${env.API_PORT}/${env.API_GLOBAL_PREFIX}`,
+  );
 }
 
 void bootstrap();
