@@ -1,121 +1,120 @@
-# Authentication delta specification
+# Especificación delta de autenticación
 
-## ADDED Requirements
+## Requisitos agregados
 
-### Requirement: Organization-bound login
+### Requisito: Login ligado a organización
 
-The API MUST authenticate with email, password and organization slug and MUST
-create a session only for an active user, organization and membership.
+La API DEBE autenticar con email, contraseña y slug, y solo DEBE crear una sesión
+para usuario, organización y membresía activos.
 
-#### Scenario: Valid credentials and membership
+#### Escenario: Credenciales y membresía válidas
 
-- **Given** an active user has an active membership in an active organization
-- **When** the user submits valid credentials and the organization slug
-- **Then** the API creates an organization-bound session
-- **And** sets access and refresh cookies
-- **And** returns a safe actor and organization representation
+- **Dado** un usuario activo con membresía activa en una organización activa
+- **Cuando** envía credenciales y slug válidos
+- **Entonces** se crea una sesión ligada a la organización
+- **Y** se establecen cookies de access y refresh
+- **Y** se devuelve una representación segura del actor
 
-#### Scenario: Any login input is invalid
+#### Escenario: Algún dato del login es inválido
 
-- **Given** the email, password, organization or membership is invalid or inactive
-- **When** a login attempt is submitted
-- **Then** the API returns the same generic unauthorized response
-- **And** does not disclose which input failed
+- **Dado** email, contraseña, organización o membresía inválidos o inactivos
+- **Cuando** se intenta login
+- **Entonces** la API devuelve siempre el mismo unauthorized genérico
+- **Y** no revela qué dato falló
 
-### Requirement: Secure cookie delivery
+### Requisito: Entrega segura de cookies
 
-Authentication cookies MUST be HttpOnly, MUST use `SameSite=Lax`, MUST be secure
-in production and MUST have appropriate expiration and path scopes.
+Las cookies DEBEN ser HttpOnly, usar `SameSite=Lax`, ser `Secure` en producción
+y tener expiración y path apropiados.
 
-#### Scenario: Production login succeeds
+#### Escenario: Login exitoso en producción
 
-- **Given** the API runs in production
-- **When** a user authenticates successfully
-- **Then** both authentication cookies include `HttpOnly` and `Secure`
-- **And** the refresh cookie is scoped to the refresh endpoint
+- **Dado** que la API corre en producción
+- **Cuando** el usuario inicia sesión correctamente
+- **Entonces** ambas cookies incluyen `HttpOnly` y `Secure`
+- **Y** la cookie de refresh se limita al endpoint de refresh
 
-### Requirement: Short-lived access tokens
+### Requisito: Access tokens de corta duración
 
-The API MUST validate access token signature, issuer, audience and expiry and MUST
-bind every protected request to its session and organization context.
+La API DEBE validar firma, issuer, audience y expiración, y DEBE ligar cada
+request protegido con sesión y organización.
 
-#### Scenario: Session was revoked after access token issuance
+#### Escenario: La sesión fue revocada después de emitir el access token
 
-- **Given** a structurally valid unexpired access token references a revoked session
-- **When** it is used on a protected endpoint
-- **Then** the API rejects the request as unauthorized
+- **Dado** un access token válido y no vencido que referencia una sesión revocada
+- **Cuando** se usa en un endpoint protegido
+- **Entonces** la API rechaza el request como unauthorized
 
-### Requirement: Refresh token rotation
+### Requisito: Rotación de refresh token
 
-The API MUST rotate the refresh token atomically on every successful refresh and
-MUST persist only a hash of the current token.
+La API DEBE rotar el refresh token atómicamente en cada refresh exitoso y solo
+DEBE persistir el hash del token actual.
 
-#### Scenario: Current refresh token is used
+#### Escenario: Se usa el refresh token actual
 
-- **Given** a valid active session and its current refresh token
-- **When** the client refreshes the session
-- **Then** the API invalidates the submitted token
-- **And** stores a hash for a newly issued refresh token
-- **And** replaces both authentication cookies
+- **Dado** una sesión activa y su refresh token vigente
+- **Cuando** el cliente hace refresh
+- **Entonces** se invalida el token enviado
+- **Y** se guarda el hash de un token nuevo
+- **Y** se reemplazan ambas cookies
 
-#### Scenario: Rotated refresh token is reused
+#### Escenario: Se reutiliza un refresh token rotado
 
-- **Given** a refresh token has already been rotated
-- **When** that old token is submitted again
-- **Then** the API revokes the complete session
-- **And** clears authentication cookies
-- **And** returns an unauthorized response
+- **Dado** un refresh token ya rotado
+- **Cuando** se vuelve a enviar
+- **Entonces** se revoca la sesión completa
+- **Y** se limpian las cookies y se responde unauthorized
 
-### Requirement: Revocable user sessions
+### Requisito: Sesiones revocables
 
-An authenticated user MUST be able to list and revoke their own sessions without
-receiving refresh token material.
+El usuario autenticado DEBE poder listar y revocar sus propias sesiones sin
+recibir material de refresh tokens.
 
-#### Scenario: User revokes another own session
+#### Escenario: El usuario revoca otra sesión propia
 
-- **Given** a user has two active sessions
-- **When** the user revokes one session by id
-- **Then** only that session is revoked
-- **And** subsequent access and refresh attempts for it fail
+- **Dado** un usuario con dos sesiones activas
+- **Cuando** revoca una por id
+- **Entonces** solo esa sesión queda revocada
+- **Y** sus intentos posteriores de access y refresh fallan
 
-### Requirement: Authenticated password change
+### Requisito: Cambio autenticado de contraseña
 
-An authenticated user MUST be able to replace their password only after proving
-the current password, and the operation MUST revoke their other sessions.
+El usuario DEBE demostrar la contraseña actual para cambiarla y la operación
+DEBE revocar sus demás sesiones.
 
-#### Scenario: Current password is valid
+#### Escenario: La contraseña actual es válida
 
-- **Given** an authenticated user provides the correct current password
-- **When** the user submits a valid new password
-- **Then** the system stores a new Argon2id hash
-- **And** revokes every other session for that user
-- **And** preserves the current session
+- **Dado** un usuario autenticado con la contraseña actual correcta
+- **Cuando** envía una contraseña nueva válida
+- **Entonces** se guarda un hash Argon2id nuevo
+- **Y** se revocan todas sus demás sesiones
+- **Y** se conserva la sesión actual
 
-### Requirement: Idempotent logout
+### Requisito: Logout idempotente
 
-Logout MUST revoke the current session when available and MUST always clear
-authentication cookies.
+Logout DEBE revocar la sesión actual cuando exista y siempre DEBE limpiar las
+cookies.
 
-#### Scenario: Logout receives an expired token
+#### Escenario: Logout recibe un token expirado
 
-- **Given** the browser contains expired or invalid authentication cookies
-- **When** logout is requested
-- **Then** the API returns a successful idempotent response
-- **And** clears both cookies
+- **Dado** cookies expiradas o inválidas
+- **Cuando** se solicita logout
+- **Entonces** la API responde exitosamente
+- **Y** limpia ambas cookies
 
-### Requirement: Origin validation
+### Requisito: Validación de Origin
 
-Unsafe cookie-authenticated requests MUST reject origins that do not match the
-configured web origin.
+Los requests inseguros autenticados con cookies DEBEN rechazar un `Origin`
+ausente o diferente de `WEB_ORIGIN`.
 
-#### Scenario: Cross-site mutation is attempted
+#### Escenario: Se intenta una mutación cross-site
 
-- **Given** a valid authentication cookie
-- **When** an unsafe request carries an untrusted `Origin`
-- **Then** the API rejects the request before the use case executes
+- **Dado** una cookie válida
+- **Cuando** un request inseguro contiene un `Origin` no confiable
+- **Entonces** la API lo rechaza antes de ejecutar el caso de uso
 
-#### Scenario: Cookie-authenticated mutation omits origin
+#### Escenario: La mutación omite Origin
 
-- **Given** a request carries a valid authentication cookie
-- **When** an unsafe request omits the `Origin` header
-- **Then** the API rejects the request before the use case executes
+- **Dado** un request con cookie válida
+- **Cuando** un método inseguro omite `Origin`
+- **Entonces** la API lo rechaza antes de ejecutar el caso de uso

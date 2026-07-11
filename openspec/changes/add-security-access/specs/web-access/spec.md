@@ -1,71 +1,71 @@
-# Web access delta specification
+# Especificación delta de acceso web
 
-## ADDED Requirements
+## Requisitos agregados
 
-### Requirement: Login experience
+### Requisito: Experiencia de login
 
-The web application MUST validate email, password and organization slug before
-submitting login and MUST display a generic authentication failure.
+La aplicación web DEBE validar email, contraseña y slug antes de enviar login, y
+DEBE mostrar un error de autenticación genérico.
 
-#### Scenario: Login succeeds
+#### Escenario: Login exitoso
 
-- **Given** a signed-out user enters valid login data
-- **When** the login request succeeds
-- **Then** the web application stores only the safe actor state
-- **And** redirects to the protected application shell
-- **And** does not read or persist authentication tokens in JavaScript storage
+- **Dado** un usuario sin sesión con datos válidos
+- **Cuando** el login tiene éxito
+- **Entonces** la web almacena únicamente el estado seguro del actor
+- **Y** redirige al shell protegido
+- **Y** no lee ni persiste tokens desde JavaScript
 
-### Requirement: Session restoration
+### Requisito: Restauración de sesión
 
-The protected web shell MUST restore actor state through the authenticated API
-and MUST avoid rendering protected content before restoration resolves.
+El shell protegido DEBE restaurar el actor mediante la API y NO DEBE mostrar
+contenido protegido antes de resolver la restauración.
 
-#### Scenario: Existing session is valid
+#### Escenario: La sesión existente es válida
 
-- **Given** the browser has valid HttpOnly authentication cookies
-- **When** the protected application loads
-- **Then** the web application restores the safe actor and organization context
-- **And** renders authorized navigation
+- **Dado** cookies HttpOnly válidas
+- **Cuando** carga la aplicación protegida
+- **Entonces** se restaura actor y organización
+- **Y** se muestra la navegación autorizada
 
-#### Scenario: Existing session is invalid
+#### Escenario: La sesión existente es inválida
 
-- **Given** the browser cookies are expired or revoked
-- **When** session restoration fails after at most one refresh attempt
-- **Then** client authentication state is cleared
-- **And** the user returns to login without a redirect loop
+- **Dado** cookies expiradas o revocadas
+- **Cuando** la restauración falla tras un máximo de un refresh
+- **Entonces** se limpia el estado de autenticación
+- **Y** se vuelve al login sin redirect loop
 
-### Requirement: Serialized refresh
+### Requisito: Refresh serializado
 
-The web API client MUST coordinate concurrent unauthorized responses through one
-refresh request and MUST retry each original request at most once.
+El API client DEBE coordinar respuestas unauthorized concurrentes mediante un
+solo refresh y DEBE reintentar cada request original como máximo una vez.
 
-#### Scenario: Multiple requests expire together
+#### Escenario: Varios requests expiran juntos
 
-- **Given** several requests receive unauthorized because the access token expired
-- **When** refresh is still possible
-- **Then** the client sends one refresh request
-- **And** retries the waiting requests once after successful rotation
+- **Dado** varios requests unauthorized por access token expirado
+- **Cuando** todavía es posible hacer refresh
+- **Entonces** el cliente envía un solo refresh
+- **Y** reintenta una vez los requests en espera
 
-### Requirement: Permission-aware interface
+### Requisito: Interfaz consciente de permisos
 
-The web application MUST hide or disable actions unavailable to the current
-actor, while treating API authorization as the source of truth.
+La web DEBE ocultar o deshabilitar acciones no disponibles, pero DEBE considerar
+la autorización de la API como fuente de verdad.
 
-#### Scenario: Read-only member opens administration
+#### Escenario: Un miembro read-only abre administración
 
-- **Given** the actor lacks role and membership management permissions
-- **When** administration navigation is rendered
-- **Then** mutation actions are not offered
-- **And** a direct forbidden API response is handled without exposing data
+- **Dado** un actor sin permisos para roles ni membresías
+- **Cuando** se renderiza la navegación administrativa
+- **Entonces** no se ofrecen acciones de mutación
+- **Y** un forbidden directo se maneja sin exponer datos
 
-### Requirement: Access management states
+### Requisito: Estados de gestión de acceso
 
-Users, memberships, roles and sessions views MUST provide loading, empty,
-forbidden and backend-validation error states.
+Las vistas de usuarios, membresías, roles y sesiones DEBEN representar estados
+de loading, vacío, forbidden y errores de validación del backend.
 
-#### Scenario: Membership list is empty
+#### Escenario: La lista de membresías está vacía
 
-- **Given** a permitted list request returns no matching memberships
-- **When** the view renders
-- **Then** it shows an explicit empty state
-- **And** does not present the result as a loading or error state
+- **Dado** un request permitido sin resultados
+- **Cuando** se renderiza la vista
+- **Entonces** muestra un estado vacío explícito
+- **Y** no lo confunde con loading o error

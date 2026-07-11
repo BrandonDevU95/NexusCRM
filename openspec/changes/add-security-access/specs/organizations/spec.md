@@ -1,81 +1,80 @@
-# Organizations delta specification
+# Especificación delta de organizaciones
 
-## ADDED Requirements
+## Requisitos agregados
 
-### Requirement: Active organization context
+### Requisito: Contexto de organización activo
 
-Every protected request MUST resolve exactly one active organization and active
-membership from the authenticated session.
+Cada request protegido DEBE resolver exactamente una organización y una
+membresía activas desde la sesión.
 
-#### Scenario: Organization is deactivated
+#### Escenario: La organización fue desactivada
 
-- **Given** a session belongs to an organization that becomes inactive
-- **When** the session calls a protected endpoint
-- **Then** the API rejects the request as unauthorized
+- **Dado** una sesión ligada a una organización ahora inactiva
+- **Cuando** llama un endpoint protegido
+- **Entonces** la API responde unauthorized
 
-### Requirement: Membership lifecycle
+### Requisito: Ciclo de vida de membresías
 
-Organization memberships MUST transition between `active`, `suspended` and
-`removed` states and MUST not be hard-deleted.
+Las membresías DEBEN transicionar entre `active`, `suspended` y `removed`, y NO
+DEBEN borrarse físicamente.
 
-#### Scenario: Member is suspended
+#### Escenario: Se suspende un miembro
 
-- **Given** an authenticated administrator has `organization-members:update`
-- **When** the administrator suspends a current-organization membership
-- **Then** the membership is preserved with `suspended` status
-- **And** all sessions for that membership are revoked
+- **Dado** un administrador con `organization-members:update`
+- **Cuando** suspende una membresía de su organización
+- **Entonces** se conserva con estado `suspended`
+- **Y** se revocan todas sus sesiones
 
-#### Scenario: Removed member is added again
+#### Escenario: Se agrega nuevamente un miembro removido
 
-- **Given** a user has a removed membership in the current organization
-- **When** an authorized administrator adds the same user again
-- **Then** the existing membership transitions to active
-- **And** no duplicate organization-user pair is created
+- **Dado** un usuario con membresía `removed`
+- **Cuando** un administrador lo agrega otra vez
+- **Entonces** la membresía existente pasa a `active`
+- **Y** no se duplica la pareja organización-usuario
 
-### Requirement: Organization isolation
+### Requisito: Aislamiento por organización
 
-Organization and membership repositories MUST require an explicit
-`organizationId` for tenant-scoped reads and writes.
+Los repositories DEBEN exigir `organizationId` explícito para lecturas y
+escrituras con alcance de tenant.
 
-#### Scenario: Identifier belongs to another organization
+#### Escenario: El identificador pertenece a otra organización
 
-- **Given** an actor is authenticated in organization A
-- **And** a membership id belongs to organization B
-- **When** the actor requests or mutates that membership
-- **Then** no organization B data is returned or changed
+- **Dado** un actor autenticado en A y una membresía de B
+- **Cuando** intenta consultar o modificar esa membresía
+- **Entonces** no se devuelve ni modifica información de B
 
-### Requirement: Current organization management
+### Requisito: Gestión de la organización actual
 
-Members with `organizations:read` MUST be able to view their current organization
-and members with `organizations:update` MUST be able to update allowed settings.
+Un miembro con `organizations:read` DEBE poder consultar su organización y uno
+con `organizations:update` DEBE poder modificar la configuración permitida.
 
-#### Scenario: Organization settings are updated
+#### Escenario: Se actualiza la configuración
 
-- **Given** an authenticated member has `organizations:update`
-- **When** the member submits a valid name, timezone or currency
-- **Then** only the current organization is updated
-- **And** immutable identifiers are unchanged
+- **Dado** un miembro con `organizations:update`
+- **Cuando** envía nombre, timezone o currency válidos
+- **Entonces** solo se actualiza la organización actual
+- **Y** los identificadores inmutables no cambian
 
-### Requirement: Membership list contract
+### Requisito: Contrato de lista de membresías
 
-The membership list MUST provide pagination, search, status filters and stable
-sorting within the current organization.
+La lista DEBE ofrecer paginación, búsqueda, filtro de estado y orden estable
+dentro de la organización actual.
 
-#### Scenario: Administrator filters suspended members
+#### Escenario: Se filtran miembros suspendidos
 
-- **Given** active and suspended memberships exist in the current organization
-- **When** a member with `organization-members:read` filters by `suspended`
-- **Then** only suspended current-organization memberships are returned
-- **And** pagination metadata is included
+- **Dado** membresías activas y suspendidas
+- **Cuando** un miembro con `organization-members:read` filtra `suspended`
+- **Entonces** recibe solo membresías suspendidas de su organización
+- **Y** metadata de paginación
 
-### Requirement: Idempotent security seeds
+### Requisito: Seeds de seguridad idempotentes
 
-Phase 2 seeds MUST create demo users, organization memberships, roles and
-permission assignments deterministically without storing real credentials.
+Los seeds DEBEN crear usuarios demo, membresías, roles y asignaciones de forma
+determinística, sin usar credenciales reales.
 
-#### Scenario: Security seeds run twice
+#### Escenario: Los seeds se ejecutan dos veces
 
-- **Given** the foundation organization exists
-- **When** Phase 2 seeds execute twice with the same configuration
-- **Then** logical users, memberships, roles and assignments are not duplicated
-- **And** the organization retains an active administrator
+- **Dado** la organización foundation
+- **Cuando** los seeds de Fase 2 se ejecutan dos veces
+- **Entonces** no se duplican registros lógicos
+- **Y** la organización conserva un administrador activo

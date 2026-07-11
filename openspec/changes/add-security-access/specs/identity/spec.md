@@ -1,69 +1,69 @@
-# Identity delta specification
+# Especificación delta de identidad
 
-## ADDED Requirements
+## Requisitos agregados
 
-### Requirement: Global user identity
+### Requisito: Identidad global de usuario
 
-The system MUST store one global user identity per normalized email and MUST
-never expose password hashes through HTTP contracts, logs or events.
+El sistema DEBE almacenar una identidad global por email normalizado y NUNCA
+DEBE exponer password hashes mediante HTTP, logs o eventos.
 
-#### Scenario: Administrator creates a user
+#### Escenario: Un administrador crea un usuario
 
-- **Given** an authenticated member with `users:create`
-- **When** the member submits a valid unique email, display name and password
-- **Then** the system stores the normalized email and an Argon2id password hash
-- **And** the response excludes credential fields
+- **Dado** un miembro autenticado con `users:create`
+- **Cuando** envía email único, nombre y contraseña válidos
+- **Entonces** se guarda el email normalizado y un hash Argon2id
+- **Y** la respuesta excluye credenciales
 
-#### Scenario: Email differs only by case
+#### Escenario: El email solo difiere en mayúsculas
 
-- **Given** a user already exists with a normalized email
-- **When** an administrator creates another user with different email casing
-- **Then** the system rejects the duplicate identity
+- **Dado** un usuario existente con el mismo email normalizado
+- **Cuando** se intenta crear otro con distinto casing
+- **Entonces** se rechaza la identidad duplicada
 
-### Requirement: User account lifecycle
+### Requisito: Ciclo de vida de la cuenta
 
-The system MUST preserve global user records needed by future historical
-references and MUST limit identity updates to the authenticated owner.
+El sistema DEBE conservar identidades globales para referencias históricas y
+DEBE limitar sus modificaciones al propietario autenticado.
 
-#### Scenario: User updates their profile
+#### Escenario: El usuario actualiza su perfil
 
-- **Given** an authenticated user
-- **When** the user updates their own allowed profile fields
-- **Then** the global identity is updated
-- **And** credential and account-state fields remain unchanged
+- **Dado** un usuario autenticado
+- **Cuando** modifica sus propios campos permitidos
+- **Entonces** se actualiza la identidad global
+- **Y** credenciales y estado permanecen sin cambios
 
-#### Scenario: Organization administrator targets another global identity
+#### Escenario: Un administrador apunta a otra identidad global
 
-- **Given** an administrator and another user belong to the same organization
-- **When** the administrator attempts to update the other user's global profile or account state
-- **Then** the system rejects the operation
+- **Dado** un administrador y otro usuario de la misma organización
+- **Cuando** intenta modificar el perfil global o estado del otro usuario
+- **Entonces** el sistema rechaza la operación
 
-### Requirement: Organization-scoped user administration
+### Requisito: Administración de usuarios por organización
 
-User administration endpoints MUST return or modify only identities connected to
-the actor's current organization through a membership.
+Los endpoints administrativos DEBEN devolver o modificar únicamente identidades
+con membresía en la organización actual.
 
-#### Scenario: User belongs only to another organization
+#### Escenario: El usuario solo pertenece a otra organización
 
-- **Given** an administrator authenticated in organization A
-- **And** a user belongs only to organization B
-- **When** the administrator requests that user by id
-- **Then** the API responds as if the user were not available in organization A
+- **Dado** un administrador autenticado en la organización A
+- **Y** un usuario que solo pertenece a la organización B
+- **Cuando** solicita ese usuario por id
+- **Entonces** la API responde como si no estuviera disponible en A
 
-#### Scenario: Administrator creates an organization user
+#### Escenario: Un administrador crea un usuario de organización
 
-- **Given** an authenticated member with `users:create`
-- **When** the member submits a new global identity
-- **Then** the identity and current-organization membership are created atomically
-- **And** a partial identity is not retained if membership creation fails
+- **Dado** un miembro con `users:create`
+- **Cuando** envía una identidad global nueva
+- **Entonces** identidad y membresía actual se crean atómicamente
+- **Y** no queda una identidad parcial si falla la membresía
 
-### Requirement: User list contract
+### Requisito: Contrato de lista de usuarios
 
-The users list MUST provide pagination, normalized search and stable sorting.
+La lista DEBE proporcionar paginación, búsqueda normalizada y orden estable.
 
-#### Scenario: Administrator searches users
+#### Escenario: Un administrador busca usuarios
 
-- **Given** multiple members exist in the current organization
-- **When** an authenticated member with `users:read` searches by email or display name
-- **Then** the API returns only matching organization members
-- **And** includes pagination metadata
+- **Dado** que existen varios miembros en la organización actual
+- **Cuando** un miembro con `users:read` busca por email o nombre
+- **Entonces** recibe solo coincidencias de su organización
+- **Y** la respuesta incluye metadata de paginación

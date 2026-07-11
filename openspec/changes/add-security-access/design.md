@@ -1,136 +1,136 @@
-# Design: security and organization access
+# Diseño: seguridad y acceso por organización
 
-## Context
+## Contexto
 
-NexusCRM is a modular monolith. Authentication establishes an actor and tenant
-context; authorization consumes that context at module boundaries. The design
-must remain understandable enough for one maintainer to implement and debug.
+NexusCRM es un modular monolith. La autenticación establece actor y tenant; la
+autorización consume ese contexto en los límites de cada módulo. El diseño debe
+seguir siendo comprensible para que una sola persona pueda implementarlo y
+depurarlo.
 
-## Domain ownership
+## Propiedad del dominio
 
-| Module          | Owns                                                  | Does not own                         |
-| --------------- | ----------------------------------------------------- | ------------------------------------ |
-| `users`         | Global identity, password hash, account state         | Organization access or roles         |
-| `organizations` | Organization and membership lifecycle                 | Credentials or permission evaluation |
-| `auth`          | Credential verification, tokens, cookies and sessions | Role administration                  |
-| `authorization` | Permissions, roles, CASL abilities and guards         | Authentication credentials           |
+| Módulo          | Es propietario de                                  | No es propietario de                  |
+| --------------- | -------------------------------------------------- | ------------------------------------- |
+| `users`         | Identidad global, password hash y estado de cuenta | Acceso a organizaciones o roles       |
+| `organizations` | Organización y ciclo de vida de membresías         | Credenciales o evaluación de permisos |
+| `auth`          | Credenciales, tokens, cookies y sesiones           | Administración de roles               |
+| `authorization` | Permisos, roles, abilities de CASL y guards        | Credenciales de autenticación         |
 
-Modules access another module's data through exported services or repository
-contracts, not by importing private repositories.
+Un módulo accede a datos de otro mediante servicios exportados o contratos de
+repositorio, nunca importando repositories privados.
 
-## Persistence model
+## Modelo de persistencia
 
-### Users
+### Usuarios
 
-`users` stores one global identity per normalized email:
+`users` almacena una identidad global por email normalizado:
 
 - `id`
-- `email` and `normalized_email`
+- `email` y `normalized_email`
 - `display_name`
 - `password_hash`
 - `is_active`
 - `last_login_at`
-- `created_at` and `updated_at`
+- `created_at` y `updated_at`
 
-Passwords use Argon2id. Password hashes and token hashes MUST never appear in
-DTOs, logs or domain events.
+Las contraseñas usan Argon2id. Los hashes de contraseña y tokens NUNCA DEBEN
+aparecer en DTOs, logs o eventos de dominio.
 
-### Organization memberships
+### Membresías de organización
 
-`organization_members` joins a user to one organization and stores:
+`organization_members` relaciona un usuario con una organización y almacena:
 
 - `id`
 - `organization_id`
 - `user_id`
-- `status`: `active`, `suspended` or `removed`
+- `status`: `active`, `suspended` o `removed`
 - `joined_at`
-- `created_at` and `updated_at`
+- `created_at` y `updated_at`
 
-The `(organization_id, user_id)` pair is unique. Historical memberships are
-status-transitioned rather than hard-deleted. Every authenticated request MUST
-resolve an active user, active organization and active membership.
+La pareja `(organization_id, user_id)` es única. Las membresías se cambian de
+estado en lugar de borrarse. Cada request autenticado DEBE resolver usuario,
+organización y membresía activos.
 
-### Permissions and roles
+### Permisos y roles
 
-`permissions` is a global immutable catalog keyed by a stable code such as
-`users:read`. Application code and seeds may add catalog entries; organization
-administrators cannot rename or delete them.
+`permissions` es un catálogo global e inmutable identificado por códigos
+estables como `users:read`. Código y seeds pueden agregar entradas; los
+administradores no pueden renombrarlas ni eliminarlas.
 
-`roles` belongs to one organization and stores a unique name within that
-organization plus an `is_system` protection flag. `role_permissions` assigns catalog permissions to a role, and
-`organization_member_roles` assigns roles to memberships. Direct per-user
-permission grants are intentionally excluded.
+Cada registro de `roles` pertenece a una organización, tiene nombre único dentro
+de ella y un indicador de protección `is_system`. `role_permissions` asigna
+permisos a roles y `organization_member_roles` asigna roles a membresías. No se
+permiten permisos directos por usuario.
 
-The seeded `Admin` role is protected from deletion. An organization MUST always
-retain at least one active membership with an administrative role.
+El rol `Admin` generado por seed está protegido. Toda organización DEBE conservar
+al menos una membresía activa con rol administrativo.
 
-### Sessions and token families
+### Sesiones y familias de tokens
 
-`sessions` belongs to a user, membership and organization and stores:
+`sessions` pertenece a un usuario, membresía y organización, y almacena:
 
-- `id` used as the refresh token family identifier
-- `user_id`, `organization_id` and `organization_member_id`
-- current refresh token hash and token identifier
-- optional user agent and IP metadata
-- `expires_at`, `last_used_at`, `revoked_at` and `revoke_reason`
-- `created_at` and `updated_at`
+- `id` como identificador de la familia de refresh tokens
+- `user_id`, `organization_id` y `organization_member_id`
+- hash e identificador del refresh token actual
+- user agent e IP opcionales
+- `expires_at`, `last_used_at`, `revoked_at` y `revoke_reason`
+- `created_at` y `updated_at`
 
-Only the current refresh token hash is valid. Refresh tokens are signed JWTs
-containing the session id, token id, subject and organization context. The token
-value is additionally hashed before persistence.
+Solo el hash actual es válido. El refresh token es un JWT firmado con session id,
+token id, subject y contexto de organización. Su valor también se guarda
+hasheado en la base de datos.
 
-## Authentication flow
+## Flujo de autenticación
 
 ### Login
 
-Login accepts normalized email, password and organization slug. The service:
+El login recibe email, contraseña y slug de organización. El servicio:
 
-1. loads the user without exposing whether it exists;
-2. verifies Argon2id credentials;
-3. verifies active user, organization and membership states;
-4. creates an organization-bound session;
-5. returns a safe actor/session DTO and sets access and refresh cookies.
+1. busca al usuario sin revelar si existe;
+2. verifica credenciales Argon2id;
+3. verifica usuario, organización y membresía activos;
+4. crea una sesión ligada a la organización;
+5. devuelve un DTO seguro y establece las cookies de access y refresh.
 
-All credential and membership failures return the same unauthorized response.
+Cualquier fallo de credenciales o membresía devuelve el mismo unauthorized.
 
 ### Access token
 
-The short-lived access JWT contains `sub`, `sid`, `organizationId`,
-`membershipId`, issuer and audience. Roles and permissions are not embedded so
-role changes take effect without waiting for token expiration. The API resolves
-current authorization state for protected requests.
+El access JWT incluye `sub`, `sid`, `organizationId`, `membershipId`, issuer y
+audience. No incluye roles ni permisos, para que los cambios de autorización se
+apliquen sin esperar su expiración. Cada request protegido consulta el estado
+actual.
 
-### Refresh rotation
+### Rotación de refresh token
 
-Refresh acquires a transaction lock on the session, verifies the JWT and stored
-hash, issues a new token id and replaces the stored hash atomically. A second
-use of an old token is treated as reuse and revokes the complete session.
+El refresh obtiene un lock transaccional sobre la sesión, verifica JWT y hash,
+emite un token id nuevo y reemplaza el hash atómicamente. Reutilizar un token
+anterior revoca la sesión completa.
 
-Concurrent refresh requests may result in one success and one revoked session;
-the frontend MUST serialize refresh attempts.
+Con refreshes concurrentes puede ocurrir un éxito seguido de una revocación. El
+frontend DEBE serializar sus intentos de refresh.
 
-### Cookies and cross-site protection
+### Cookies y protección cross-site
 
-Access and refresh cookies are `HttpOnly`, `SameSite=Lax` and `Secure` in
-production. The refresh cookie is scoped to the refresh endpoint. Logout clears
-both cookies even when the server session is already invalid.
+Las cookies son `HttpOnly`, `SameSite=Lax` y `Secure` en producción. La cookie de
+refresh se limita al endpoint de refresh. Logout limpia ambas cookies aunque la
+sesión ya sea inválida.
 
-Unsafe cookie-authenticated requests MUST validate their `Origin` against
-`WEB_ORIGIN`. CORS configuration alone is not treated as CSRF protection.
+Los requests inseguros autenticados con cookies DEBEN validar `Origin` contra
+`WEB_ORIGIN`. CORS por sí solo no se considera protección CSRF.
 
-## Authorization flow
+## Flujo de autorización
 
-1. `AccessTokenGuard` validates signature, issuer, audience and expiry.
-2. `OrganizationContextGuard` resolves active user, organization, membership and
-   session context.
-3. `PermissionsGuard` reads required permission metadata from the endpoint.
-4. `CaslAbilityFactory` builds an ability from the membership's current roles.
-5. Services still enforce organization predicates and critical invariants.
+1. `AccessTokenGuard` valida firma, issuer, audience y expiración.
+2. `OrganizationContextGuard` resuelve usuario, organización, membresía y sesión activos.
+3. `PermissionsGuard` obtiene el permiso requerido desde metadata del endpoint.
+4. `CaslAbilityFactory` construye el ability a partir de los roles actuales.
+5. Los servicios conservan predicados por organización e invariantes críticas.
 
-Controllers declare permissions through a decorator. Public endpoints require an
-explicit public marker. Authentication never implies authorization.
+Los controllers declaran permisos mediante un decorator. Los endpoints públicos
+requieren una marca explícita. Estar autenticado nunca implica estar autorizado.
 
-The first permission additions for Phase 2 are:
+Permisos activos de Fase 2:
 
 - `users:create`, `users:read`, `users:update`, `users:delete`
 - `roles:read`, `roles:manage`
@@ -140,15 +140,12 @@ The first permission additions for Phase 2 are:
 - `organization-members:update`, `organization-members:remove`
 - `sessions:read`, `sessions:revoke`
 
-`permissions:manage` remains a reserved catalog code for future controlled
-administration; Phase 2 does not expose permission mutation endpoints.
+`permissions:manage` queda reservado para administración futura; Fase 2 no
+expone endpoints que muten el catálogo. Un usuario puede consultar y revocar sus
+propias sesiones sin permisos administrativos. Gestionar sesiones ajenas sí
+requiere permisos de sesión.
 
-Users may view and revoke their own sessions without an administrative
-permission. Managing another user's sessions requires the session permissions.
-
-## API surface
-
-The initial API is intentionally small:
+## Superficie de API
 
 - `POST /auth/login`
 - `POST /auth/refresh`
@@ -168,61 +165,55 @@ The initial API is intentionally small:
 - `PATCH /authorization/roles/:roleId`
 - `DELETE /authorization/roles/:roleId`
 
-List endpoints use pagination, search and stable sorting. `DELETE` operations in
-this phase deactivate or status-transition records rather than hard-delete them.
+Los endpoints de lista incluyen paginación, búsqueda y orden estable. Los
+`DELETE` desactivan o cambian estados; no borran registros históricos.
 
-Organization administrators manage access through memberships; they do not
-deactivate or rewrite a global identity. `POST /users` creates a new identity and
-current-organization membership atomically. An authenticated user may update
-their own display name or password. Password changes revoke the user's other
-sessions. Global account deactivation has no Phase 2 HTTP endpoint.
+Los administradores gestionan acceso mediante membresías, no modificando una
+identidad global. `POST /users` crea identidad y membresía actual atómicamente.
+El usuario puede actualizar su propio nombre o contraseña. Cambiar contraseña
+revoca sus demás sesiones. Fase 2 no expone desactivación global de cuentas.
 
-## Frontend boundaries
+## Límites del frontend
 
-The auth feature owns login, logout, session restoration and serialized refresh.
-It exposes actor and authorization state to protected layouts. API calls include
-credentials but never read authentication cookies from JavaScript.
+La feature de auth es responsable de login, logout, restauración de sesión y
+refresh serializado. Expone actor y autorización a layouts protegidos. Los API
+requests incluyen credentials, pero JavaScript nunca lee las cookies.
 
-Admin/settings features own basic user, membership and role management views.
-Navigation hides unavailable actions, while the API remains the source of truth.
+Las features de admin/settings contienen las vistas básicas de usuarios,
+membresías y roles. La navegación oculta acciones no disponibles, pero la API
+sigue siendo la fuente de verdad.
 
-## Events and future audit integration
+## Eventos e integración futura de auditoría
 
-Services emit sanitized events for login success/failure, session revocation,
-membership state changes and role changes. Phase 2 does not persist audit logs;
-the future audit module may subscribe without changing the service contracts.
+Los servicios emiten eventos sanitizados para login, revocación de sesión,
+cambios de membresía y roles. Fase 2 no persiste audit logs; el módulo futuro
+podrá suscribirse sin cambiar contratos de servicios.
 
-## Migration strategy
+## Estrategia de migración
 
-One versioned Phase 2 migration creates the security tables, foreign keys and
-indexes. It evolves the existing `organizations` table without replacing its
-foundation record. `synchronize` remains disabled.
+Una migración versionada crea tablas, foreign keys e índices de seguridad.
+Extiende `organizations` sin sustituir el registro foundation. `synchronize`
+permanece deshabilitado.
 
-## Seed strategy
+## Estrategia de seeds
 
-Seeds run in dependency order: permissions, organization roles, users,
-memberships and role assignments. Stable emails, slugs and role names are used as
-natural idempotency keys. Demo passwords come only from a non-production seed
-environment variable and are never committed as real credentials.
+El orden es: permisos, roles, usuarios, membresías y asignaciones. Emails, slugs
+y nombres estables funcionan como claves de idempotencia. Las contraseñas demo
+provienen de una variable de entorno exclusiva para seeds no productivos.
 
-## Testing strategy
+## Estrategia de pruebas
 
-- Unit tests cover password verification, abilities and service invariants.
-- Repository integration tests cover organization scoping and refresh locking.
-- HTTP integration tests cover cookies, guards and response contracts.
-- Web tests cover session restoration, serialized refresh and permission-driven
-  navigation.
+- Unit tests: contraseñas, abilities e invariantes de servicios.
+- Integration tests: scoping por organización y locking de refresh.
+- HTTP integration tests: cookies, guards y contratos de respuesta.
+- Web tests: restauración, refresh serializado y navegación por permisos.
 
-Tests are written before or alongside each implementation slice under the
-project's strict TDD rule.
+Las pruebas se escriben antes o junto a cada corte conforme a `strict_tdd`.
 
-## Alternatives rejected
+## Alternativas descartadas
 
-- Embedding permissions in access JWTs: role changes would remain stale.
-- Global roles shared by all organizations: tenants could not safely customize
-  access.
-- Storing raw refresh tokens: a database leak would immediately expose sessions.
-- Direct user permissions: they complicate access review and are unnecessary for
-  the first release.
-- Hard-deleting memberships or users: future commercial history needs stable
-  actor references.
+- Incluir permisos en JWT: los cambios de roles quedarían obsoletos.
+- Roles globales: los tenants no podrían personalizar acceso de forma segura.
+- Guardar refresh tokens sin hash: una fuga de DB expondría sesiones.
+- Permisos directos por usuario: complican la revisión de acceso.
+- Borrar usuarios o membresías: el historial comercial necesitará actores estables.

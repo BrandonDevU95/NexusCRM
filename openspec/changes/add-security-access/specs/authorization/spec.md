@@ -1,90 +1,89 @@
-# Authorization delta specification
+# Especificación delta de autorización
 
-## ADDED Requirements
+## Requisitos agregados
 
-### Requirement: Stable permission catalog
+### Requisito: Catálogo estable de permisos
 
-The system MUST maintain globally unique immutable permission codes shared by the
-API and web applications.
+El sistema DEBE mantener códigos de permiso globales, únicos e inmutables,
+compartidos por API y web.
 
-#### Scenario: Permission seed runs repeatedly
+#### Escenario: El seed de permisos se ejecuta varias veces
 
-- **Given** the Phase 2 permission catalog exists
-- **When** the permission seed runs more than once
-- **Then** each permission code exists exactly once
-- **And** existing role assignments remain valid
+- **Dado** el catálogo de Fase 2
+- **Cuando** el seed se ejecuta más de una vez
+- **Entonces** cada código existe una sola vez
+- **Y** las asignaciones de roles siguen siendo válidas
 
-### Requirement: Organization-scoped roles
+### Requisito: Roles por organización
 
-Every role MUST belong to one organization and role names MUST be unique within
-that organization.
+Cada rol DEBE pertenecer a una organización y su nombre DEBE ser único dentro de
+ella.
 
-#### Scenario: Same role name is used by different organizations
+#### Escenario: Organizaciones distintas usan el mismo nombre
 
-- **Given** organization A has a role named `Sales Manager`
-- **When** organization B creates a role with the same name
-- **Then** the role is created only for organization B
+- **Dado** un rol `Sales Manager` en la organización A
+- **Cuando** la organización B crea un rol con el mismo nombre
+- **Entonces** el rol se crea exclusivamente para B
 
-#### Scenario: Duplicate role name is used in one organization
+#### Escenario: Nombre duplicado en la misma organización
 
-- **Given** the current organization has a role with a normalized name
-- **When** an administrator creates another role with that name
-- **Then** the API rejects the duplicate
+- **Dado** un rol con cierto nombre normalizado
+- **Cuando** se intenta crear otro igual en la organización actual
+- **Entonces** la API rechaza el duplicado
 
-### Requirement: Role permission assignment
+### Requisito: Asignación de permisos a roles
 
-Only members with `roles:manage` MUST be able to create roles or replace their
-permission assignments, and assigned codes MUST exist in the catalog.
+Solo miembros con `roles:manage` DEBEN poder crear roles o reemplazar sus
+permisos, y todos los códigos DEBEN existir en el catálogo.
 
-#### Scenario: Role permissions are replaced
+#### Escenario: Se reemplazan los permisos de un rol
 
-- **Given** an authenticated member has `roles:manage`
-- **When** the member updates a current-organization role with valid permission codes
-- **Then** the role contains exactly the submitted permission set
-- **And** authorization changes apply to subsequent requests
+- **Dado** un miembro con `roles:manage`
+- **Cuando** actualiza un rol actual con códigos válidos
+- **Entonces** el rol contiene exactamente el conjunto enviado
+- **Y** el cambio aplica a los requests posteriores
 
-### Requirement: Membership role assignment
+### Requisito: Asignación de roles a membresías
 
-Roles MUST be assignable only to active memberships from the same organization.
+Los roles solo DEBEN asignarse a membresías activas de la misma organización.
 
-#### Scenario: Role belongs to another organization
+#### Escenario: El rol pertenece a otra organización
 
-- **Given** a membership belongs to organization A
-- **And** a role belongs to organization B
-- **When** an administrator attempts the assignment
-- **Then** the API rejects it without modifying either organization
+- **Dado** una membresía de A y un rol de B
+- **Cuando** se intenta asignar el rol
+- **Entonces** la API rechaza la operación sin modificar ninguna organización
 
-### Requirement: Explicit endpoint permissions
+### Requisito: Permisos explícitos por endpoint
 
-Every sensitive endpoint MUST declare required permission metadata and MUST be
-evaluated by the authentication, organization-context and permissions guards.
+Cada endpoint sensible DEBE declarar metadata de permisos y DEBE pasar por los
+guards de autenticación, organización y permisos.
 
-#### Scenario: Authenticated member lacks permission
+#### Escenario: El miembro autenticado no tiene permiso
 
-- **Given** an active member has a valid session but lacks the endpoint permission
-- **When** the member calls the sensitive endpoint
-- **Then** the API returns forbidden
-- **And** the use case does not execute
+- **Dado** una sesión válida sin el permiso requerido
+- **Cuando** se llama al endpoint sensible
+- **Entonces** la API responde forbidden
+- **Y** el caso de uso no se ejecuta
 
-### Requirement: CASL ability evaluation
+### Requisito: Evaluación de ability con CASL
 
-The API MUST build CASL abilities from the membership's current organization
-roles and MUST not rely on client navigation or token-embedded permissions.
+La API DEBE construir abilities desde los roles actuales de la membresía y NO
+DEBE confiar en la navegación del cliente ni en permisos dentro del token.
 
-#### Scenario: Role permission is removed
+#### Escenario: Se retira un permiso del rol
 
-- **Given** a member has a valid access token
-- **And** an administrator removes a permission from the member's role
-- **When** the member makes a subsequent protected request
-- **Then** the new ability no longer permits that action
+- **Dado** un miembro con access token válido
+- **Y** un administrador retira un permiso de su rol
+- **Cuando** el miembro hace otro request protegido
+- **Entonces** el ability nuevo ya no permite la acción
 
-### Requirement: Administrative continuity
+### Requisito: Continuidad administrativa
 
-An organization MUST retain at least one active administrative membership and
-the protected seeded `Admin` role MUST not be deletable.
+La organización DEBE conservar al menos una membresía administrativa activa y el
+rol `Admin` protegido NO DEBE poder eliminarse.
 
-#### Scenario: Last administrator would lose access
+#### Escenario: El último administrador perdería acceso
 
-- **Given** an organization has one active administrative membership
-- **When** an operation would suspend it or remove its administrative role
-- **Then** the system rejects the operation
+- **Dado** una sola membresía administrativa activa
+- **Cuando** una operación intenta suspenderla o retirar su rol administrativo
+- **Entonces** el sistema rechaza la operación

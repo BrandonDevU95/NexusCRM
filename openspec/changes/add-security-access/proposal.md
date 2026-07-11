@@ -1,31 +1,32 @@
-# Proposal: add security and organization access
+# Propuesta: agregar seguridad y acceso por organización
 
-## Summary
+## Resumen
 
-Implement the `v0.2.0` security foundation for NexusCRM: users, organization
-memberships, authentication, revocable sessions, refresh token rotation,
-organization-scoped roles, explicit permissions and CASL authorization.
+Implementar la base de seguridad de NexusCRM para `v0.2.0`: usuarios,
+membresías de organizaciones, autenticación, sesiones revocables, rotación de
+refresh tokens, roles por organización, permisos explícitos y autorización con
+CASL.
 
-## Motivation
+## Motivación
 
-Every business module after the foundation depends on a trustworthy actor and
-organization context. NexusCRM needs to authenticate users, isolate tenants and
-authorize sensitive operations before customer or commercial data is added.
+Todos los módulos de negocio posteriores dependen de un actor confiable y de un
+contexto de organización. Antes de agregar datos comerciales, NexusCRM necesita
+autenticar usuarios, aislar organizaciones y autorizar operaciones sensibles.
 
-## Goals
+## Objetivos
 
-- Model global user identities and organization-scoped memberships.
-- Authenticate with secure HttpOnly cookies and generic credential errors.
-- Issue short-lived access tokens and rotate refresh tokens on every use.
-- Detect refresh token reuse and revoke the affected session family.
-- Make sessions visible and revocable by their owner.
-- Define a stable permission catalog shared by API and web.
-- Assign organization-scoped roles to active memberships.
-- Enforce permissions and organization context through NestJS guards and CASL.
-- Provide basic web flows for login, session restoration and access management.
-- Add deterministic, idempotent seeds for demo users, roles and permissions.
+- Modelar identidades globales y membresías por organización.
+- Autenticar con cookies HttpOnly y errores de credenciales genéricos.
+- Emitir access tokens de corta duración y rotar el refresh token en cada uso.
+- Detectar la reutilización de refresh tokens y revocar la sesión afectada.
+- Permitir que el usuario consulte y revoque sus sesiones.
+- Definir un catálogo estable de permisos compartido por API y web.
+- Asignar roles propios de la organización a membresías activas.
+- Aplicar permisos y contexto de organización mediante guards de NestJS y CASL.
+- Proporcionar flujos web básicos para login, restauración de sesión y gestión de acceso.
+- Agregar seeds determinísticos e idempotentes para usuarios, roles y permisos demo.
 
-## Affected areas
+## Áreas afectadas
 
 - `apps/api/src/modules/auth`
 - `apps/api/src/modules/users`
@@ -37,35 +38,35 @@ authorize sensitive operations before customer or commercial data is added.
 - `apps/web/src/features/settings`
 - `packages/shared`
 
-## Out of scope
+## Fuera de alcance
 
-- Public self-registration and organization self-service signup.
-- Email delivery, invitations and email verification.
-- Password reset and account recovery flows.
-- Multi-factor authentication and external identity providers.
-- Persistent audit/security logs, which belong to the `v0.9.0` audit phase.
-- Field-level permissions and user-specific permission overrides.
-- Impersonation or a platform-wide authorization bypass.
+- Registro público y creación autoservicio de organizaciones.
+- Envío de email, invitaciones y verificación de correo.
+- Recuperación y restablecimiento de contraseña.
+- MFA y proveedores de identidad externos.
+- Audit logs y security logs persistentes, previstos para `v0.9.0`.
+- Permisos por campo y excepciones directas por usuario.
+- Impersonation o un bypass global de autorización.
 
-## Dependencies
+## Dependencias
 
-- The TypeORM foundation and migration workflow from `v0.1.0`.
-- The existing organization foundation record and modular seed runner.
-- The shared permission and role catalogs.
+- Foundation de TypeORM y flujo de migraciones de `v0.1.0`.
+- Organización inicial y seed runner modular existentes.
+- Catálogos compartidos de permisos y roles.
 
-## Risks
+## Riesgos
 
-- A missing organization predicate could expose tenant data.
-- Incorrect refresh rotation could allow a stolen token to remain usable.
-- Cookie authentication could be vulnerable to cross-site requests.
-- Role edits could accidentally remove the last organization administrator.
+- La ausencia de un predicado por organización podría exponer datos de otro tenant.
+- Una rotación incorrecta podría mantener válido un refresh token robado.
+- La autenticación con cookies podría permitir solicitudes cross-site.
+- La edición de roles podría eliminar al último administrador de una organización.
 
-The design and specifications define mandatory guards and invariants for each
-risk.
+El diseño y las especificaciones establecen guards e invariantes obligatorias
+para mitigar estos riesgos.
 
 ## Rollback
 
-Revert the change branch, revert the Phase 2 migration and restore the previous
-shared catalogs. Existing foundation organization and settings records MUST be
-preserved. Rollback invalidates all Phase 2 sessions and requires users to sign
-in again after reapplication.
+Revertir esta rama, revertir la migración de Fase 2 y restaurar los catálogos
+compartidos anteriores. Se DEBE conservar la organización y la configuración de
+la foundation. El rollback invalida todas las sesiones de Fase 2 y obliga a los
+usuarios a iniciar sesión nuevamente después de reaplicar el cambio.
