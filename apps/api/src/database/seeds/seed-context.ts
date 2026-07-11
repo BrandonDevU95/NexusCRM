@@ -1,10 +1,12 @@
-import { faker } from '@faker-js/faker';
-import type { SeedLogger, SeedOptions } from './seed.types';
+import { faker } from "@faker-js/faker";
+import type { SeedLogger, SeedOptions } from "./seed.types";
 
-export function createSeedOptions(args: string[]): SeedOptions {
-  const moduleArg = getArgValue(args, '--module');
-  const reset = args.includes('--reset');
-  const fakerSeed = Number(process.env.SEED_FAKER_SEED ?? 20260709);
+export function createSeedOptions(
+  args: string[],
+  fakerSeed: number,
+): SeedOptions {
+  const moduleArg = getArgValue(args, "--module");
+  const reset = args.includes("--reset");
 
   const options: SeedOptions = {
     reset,

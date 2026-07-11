@@ -1,21 +1,27 @@
-import appDataSource from '../data-source';
-import { SeedRunEntity } from '../entities';
+import appDataSourcePromise from "../data-source";
+import { validateSeedEnvironment } from "../../config/app.validation";
+import { SeedRunEntity } from "../entities";
 import {
   configureFaker,
   consoleSeedLogger,
   createSeedOptions,
-} from './seed-context';
-import { selectSeeds } from './seed-registry';
+} from "./seed-context";
+import { selectSeeds } from "./seed-registry";
 
 async function main() {
-  const options = createSeedOptions(process.argv.slice(2));
+  const appDataSource = await appDataSourcePromise;
+  const environment = validateSeedEnvironment(process.env);
+  const options = createSeedOptions(
+    process.argv.slice(2),
+    environment.SEED_FAKER_SEED,
+  );
 
-  if (process.env.NODE_ENV === 'production') {
-    throw new Error('Refusing to run seeds in production.');
+  if (environment.NODE_ENV === "production") {
+    throw new Error("Refusing to run seeds in production.");
   }
 
-  if (options.reset && process.env.ALLOW_DB_RESET !== 'true') {
-    throw new Error('Seed reset requires ALLOW_DB_RESET=true.');
+  if (options.reset && !environment.ALLOW_DB_RESET) {
+    throw new Error("Seed reset requires ALLOW_DB_RESET=true.");
   }
 
   await appDataSource.initialize();
@@ -25,7 +31,7 @@ async function main() {
   const seeds = selectSeeds(options.module);
 
   if (seeds.length === 0) {
-    logger.warn(`No seeds found for module: ${options.module ?? 'all'}`);
+    logger.warn(`No seeds found for module: ${options.module ?? "all"}`);
     await appDataSource.destroy();
     return;
   }
@@ -56,11 +62,11 @@ async function main() {
           },
           lastRunAt: new Date(),
         },
-        ['name'],
+        ["name"],
       );
     }
 
-    logger.info('Seed execution completed.');
+    logger.info("Seed execution completed.");
   } finally {
     await appDataSource.destroy();
   }

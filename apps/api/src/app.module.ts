@@ -1,41 +1,43 @@
-import { Module } from '@nestjs/common';
-import { ConfigModule } from '@nestjs/config';
-import { env } from './config/env';
-import { DatabaseModule } from './database/database.module';
-import { HealthModule } from './health/health.module';
-import { AuthModule } from './modules/auth/auth.module';
-import { AuthorizationModule } from './modules/authorization/authorization.module';
-import { UsersModule } from './modules/users/users.module';
-import { OrganizationsModule } from './modules/organizations/organizations.module';
-import { SettingsModule } from './modules/settings/settings.module';
-import { CustomersModule } from './modules/customers/customers.module';
-import { ContactsModule } from './modules/contacts/contacts.module';
-import { LeadsModule } from './modules/leads/leads.module';
-import { PipelinesModule } from './modules/pipelines/pipelines.module';
-import { DealsModule } from './modules/deals/deals.module';
-import { ActivitiesModule } from './modules/activities/activities.module';
-import { TasksModule } from './modules/tasks/tasks.module';
-import { ProductsModule } from './modules/products/products.module';
-import { PriceListsModule } from './modules/price-lists/price-lists.module';
-import { QuotesModule } from './modules/quotes/quotes.module';
-import { OrdersModule } from './modules/orders/orders.module';
-import { InventoryModule } from './modules/inventory/inventory.module';
-import { TicketsModule } from './modules/tickets/tickets.module';
-import { KnowledgeBaseModule } from './modules/knowledge-base/knowledge-base.module';
-import { AutomationsModule } from './modules/automations/automations.module';
-import { NotificationsModule } from './modules/notifications/notifications.module';
-import { ReportsModule } from './modules/reports/reports.module';
-import { ImportsModule } from './modules/imports/imports.module';
-import { ExportsModule } from './modules/exports/exports.module';
-import { AuditLogModule } from './modules/audit-log/audit-log.module';
-import { AdminModule } from './modules/admin/admin.module';
+import { ActivitiesModule } from "./modules/activities/activities.module";
+import { AdminModule } from "./modules/admin/admin.module";
+import AppConfig from "./config/app.config";
+import { AuditLogModule } from "./modules/audit-log/audit-log.module";
+import { AuthModule } from "./modules/auth/auth.module";
+import { AuthorizationModule } from "./modules/authorization/authorization.module";
+import { AutomationsModule } from "./modules/automations/automations.module";
+import { ConfigModule } from "@nestjs/config";
+import { ContactsModule } from "./modules/contacts/contacts.module";
+import { CustomersModule } from "./modules/customers/customers.module";
+import { DatabaseModule } from "./database/database.module";
+import { DealsModule } from "./modules/deals/deals.module";
+import { ExportsModule } from "./modules/exports/exports.module";
+import { HealthModule } from "./health/health.module";
+import { ImportsModule } from "./modules/imports/imports.module";
+import { InventoryModule } from "./modules/inventory/inventory.module";
+import { KnowledgeBaseModule } from "./modules/knowledge-base/knowledge-base.module";
+import { LeadsModule } from "./modules/leads/leads.module";
+import { Module } from "@nestjs/common";
+import { NotificationsModule } from "./modules/notifications/notifications.module";
+import { OrdersModule } from "./modules/orders/orders.module";
+import { OrganizationsModule } from "./modules/organizations/organizations.module";
+import { PipelinesModule } from "./modules/pipelines/pipelines.module";
+import { PriceListsModule } from "./modules/price-lists/price-lists.module";
+import { ProductsModule } from "./modules/products/products.module";
+import { QuotesModule } from "./modules/quotes/quotes.module";
+import { ReportsModule } from "./modules/reports/reports.module";
+import { SettingsModule } from "./modules/settings/settings.module";
+import { TasksModule } from "./modules/tasks/tasks.module";
+import { TicketsModule } from "./modules/tickets/tickets.module";
+import { UsersModule } from "./modules/users/users.module";
+import { validateEnvironment } from "./config/app.validation";
 
 @Module({
   imports: [
     ConfigModule.forRoot({
       isGlobal: true,
-      envFilePath: ['.env', '../../.env'],
-      load: [env],
+      envFilePath: [".env", "../../.env"],
+      load: [AppConfig],
+      validate: validateEnvironment,
     }),
     DatabaseModule,
     HealthModule,
@@ -68,4 +70,3 @@ import { AdminModule } from './modules/admin/admin.module';
   ],
 })
 export class AppModule {}
-
