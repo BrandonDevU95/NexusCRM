@@ -1,0 +1,39 @@
+{
+  "name": "nexuscrm",
+  "version": "0.1.0",
+  "private": true,
+  "packageManager": "pnpm@10.0.0",
+  "workspaces": [
+    "apps/*",
+    "packages/*"
+  ],
+  "scripts": {
+    "preinstall": "node scripts/ensure-pnpm.cjs",
+    "dev": "pnpm -r --if-present run dev",
+    "dev:api": "pnpm --filter @nexuscrm/api run dev",
+    "dev:web": "pnpm --filter @nexuscrm/web run dev",
+    "build": "pnpm -r --if-present run build",
+    "lint": "pnpm -r --if-present run lint",
+    "typecheck": "pnpm -r --if-present run typecheck",
+    "test": "pnpm -r --if-present run test",
+    "test:coverage": "pnpm -r --if-present run test:coverage",
+    "db:generate": "pnpm --filter @nexuscrm/api run db:generate",
+    "db:migrate": "pnpm --filter @nexuscrm/api run db:migrate",
+    "db:migrate:revert": "pnpm --filter @nexuscrm/api run db:migrate:revert",
+    "db:migrate:show": "pnpm --filter @nexuscrm/api run db:migrate:show",
+    "db:seed": "pnpm --filter @nexuscrm/api run db:seed",
+    "db:seed:reset": "pnpm --filter @nexuscrm/api run db:seed:reset",
+    "format": "prettier --write .",
+    "format:check": "prettier --check ."
+  },
+  "pnpm": {
+    "overrides": {
+      "esbuild": "0.28.1",
+      "postcss": "8.5.16"
+    }
+  },
+  "devDependencies": {
+    "prettier": "3.9.5",
+    "typescript": "5.9.3"
+  }
+}

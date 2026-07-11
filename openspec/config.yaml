@@ -1,0 +1,46 @@
+schema: spec-driven
+
+context: |
+  Tech stack: TypeScript monorepo with NestJS API, Next.js web, PostgreSQL and TypeORM.
+  Architecture: modular monolith backend, feature-first frontend, shared package for stable constants/types.
+  Workflow: Git branches under sdd/*, modular seeds, docs-first changes.
+  Quality: Vitest planned for unit/integration tests, typecheck via tsc, formatting via Prettier.
+
+strict_tdd: true
+
+testing:
+  detected: 2026-07-09
+  test_runner:
+    framework: vitest
+    command: pnpm test
+  layers:
+    unit: available
+    integration: available_after_test_harness
+    e2e: not_installed
+  coverage:
+    available: true
+    command: pnpm test:coverage
+  quality_tools:
+    formatter: pnpm format:check
+    typechecker: pnpm typecheck
+    linter: pnpm lint
+
+rules:
+  proposal:
+    - Include rollback plan for risky changes.
+    - Identify affected apps/packages/modules.
+  specs:
+    - Use Given/When/Then scenarios.
+    - Use MUST/SHOULD/MAY consistently.
+  design:
+    - Document architecture decisions with rationale.
+    - Include data ownership and permission implications.
+  tasks:
+    - Group tasks by infrastructure, backend, frontend, seeds and tests.
+    - Keep tasks small enough to complete in one session.
+  apply:
+    - Follow existing module boundaries.
+    - Do not bypass repositories from controllers.
+  verify:
+    - Compare implementation against specs and tasks.
+    - Do not run build unless explicitly requested or closing a release hito.
