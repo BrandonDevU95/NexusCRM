@@ -5,16 +5,15 @@ import {
   Logger,
   ValidationPipe,
 } from "@nestjs/common";
+import { ConfigService, ConfigType } from "@nestjs/config";
 import { DocumentBuilder, SwaggerModule } from "@nestjs/swagger";
 import { NestFactory, Reflector } from "@nestjs/core";
 
-import { AppModule } from "./app.module";
-import { ConfigService, ConfigType } from "@nestjs/config";
 import AppConfig from "./config/app.config";
+import { AppModule } from "./app.module";
 import { HttpExceptionFilter } from "./common/filters/http-exception.filter";
 import { RequestLoggerInterceptor } from "./common/interceptors/request-logger.interceptor";
-
-import cookieParser = require("cookie-parser");
+import cookieParser from "cookie-parser";
 
 async function bootstrap() {
   const bootstrapLogger = new Logger("Bootstrap");

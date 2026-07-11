@@ -6,7 +6,8 @@
     "dev": "nest start --watch",
     "start": "node dist/main.js",
     "build": "nest build",
-    "lint": "echo \"TODO: configure ESLint for API\"",
+    "lint": "eslint \"src/**/*.ts\"",
+    "lint:fix": "eslint \"src/**/*.ts\" --fix",
     "typecheck": "tsc -p tsconfig.json --noEmit",
     "test": "vitest --run",
     "test:coverage": "vitest --coverage",
@@ -40,6 +41,7 @@
     "zod": "4.4.3"
   },
   "devDependencies": {
+    "@eslint/js": "10.0.1",
     "@nestjs/cli": "11.0.23",
     "@nestjs/schematics": "11.0.10",
     "@nestjs/testing": "11.1.28",
@@ -49,9 +51,13 @@
     "@types/node": "26.1.1",
     "@types/pg": "8.20.0",
     "@vitest/coverage-v8": "4.1.10",
+    "eslint": "10.6.0",
+    "eslint-config-prettier": "10.1.8",
+    "globals": "17.7.0",
     "ts-node": "10.9.2",
     "tsx": "4.23.0",
     "typescript": "5.9.3",
+    "typescript-eslint": "8.63.0",
     "vitest": "4.1.10"
   }
 }
