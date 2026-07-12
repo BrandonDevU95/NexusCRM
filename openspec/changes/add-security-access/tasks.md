@@ -7,8 +7,8 @@ su prueba y se revisó el aislamiento por organización.
 
 - [x] Revisar y aceptar propuesta, diseño y especificaciones delta de Fase 2.
 - [x] Definir tipos seguros para actor autenticado, contexto de organización y paginación.
-- [ ] Agregar permisos de organizaciones, membresías y sesiones.
-- [ ] Agregar estados de membresía y nombres de roles compartidos necesarios.
+- [x] Agregar permisos de organizaciones, membresías y sesiones.
+- [x] Agregar estados de membresía y nombres de roles compartidos necesarios.
 - [ ] Probar unicidad de catálogos y formato de códigos de permiso.
 
 ## 2. Migración y modelo de entidades
