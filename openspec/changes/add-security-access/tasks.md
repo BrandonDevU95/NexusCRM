@@ -5,8 +5,8 @@ su prueba y se revisó el aislamiento por organización.
 
 ## 1. SDD y contratos compartidos
 
-- [ ] Revisar y aceptar propuesta, diseño y especificaciones delta de Fase 2.
-- [ ] Definir tipos seguros para actor autenticado, contexto de organización y paginación.
+- [x] Revisar y aceptar propuesta, diseño y especificaciones delta de Fase 2.
+- [x] Definir tipos seguros para actor autenticado, contexto de organización y paginación.
 - [ ] Agregar permisos de organizaciones, membresías y sesiones.
 - [ ] Agregar estados de membresía y nombres de roles compartidos necesarios.
 - [ ] Probar unicidad de catálogos y formato de códigos de permiso.
