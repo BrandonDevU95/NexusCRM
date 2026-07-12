@@ -3,34 +3,42 @@ import {
   CreateDateColumn,
   Entity,
   Index,
+  JoinColumn,
+  OneToMany,
   PrimaryGeneratedColumn,
   UpdateDateColumn,
-} from 'typeorm';
+} from "typeorm";
 
-@Entity({ name: 'organizations' })
-@Index('organizations_slug_idx', ['slug'], { unique: true })
+import { OrganizationMemberEntity } from "./organization/organization-member.entity";
+
+@Entity({ name: "organizations" })
+@Index("organizations_slug_idx", ["slug"], { unique: true })
 export class OrganizationEntity {
-  @PrimaryGeneratedColumn('uuid')
+  @PrimaryGeneratedColumn("uuid")
   id!: string;
 
-  @Column({ type: 'varchar', length: 160 })
+  @Column({ type: "varchar", length: 160 })
   name!: string;
 
-  @Column({ type: 'varchar', length: 120 })
+  @Column({ type: "varchar", length: 120 })
   slug!: string;
 
-  @Column({ type: 'varchar', length: 80, default: 'America/Mexico_City' })
+  @Column({ type: "varchar", length: 80, default: "America/Mexico_City" })
   timezone!: string;
 
-  @Column({ type: 'varchar', length: 3, default: 'MXN' })
+  @Column({ type: "varchar", length: 3, default: "MXN" })
   currency!: string;
 
-  @Column({ name: 'is_active', type: 'boolean', default: true })
+  @Column({ name: "is_active", type: "boolean", default: true })
   isActive!: boolean;
 
-  @CreateDateColumn({ name: 'created_at', type: 'timestamptz' })
+  @OneToMany(() => OrganizationMemberEntity, (member) => member.organization)
+  @JoinColumn({ name: "id", referencedColumnName: "organization_id" })
+  members!: OrganizationMemberEntity[];
+
+  @CreateDateColumn({ name: "created_at", type: "timestamptz" })
   createdAt!: Date;
 
-  @UpdateDateColumn({ name: 'updated_at', type: 'timestamptz' })
+  @UpdateDateColumn({ name: "updated_at", type: "timestamptz" })
   updatedAt!: Date;
 }
