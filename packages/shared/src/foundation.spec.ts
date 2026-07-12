@@ -16,17 +16,16 @@ describe("shared foundation catalogs", () => {
     );
   });
 
-  it("keeps permissions unique and resource-action scoped", () => {
-    expect(new Set(basePermissions).size).toBe(basePermissions.length);
-    expect(
-      basePermissions.every((permission) => permission.includes(":")),
-    ).toBe(true);
-  });
+  const permissionCodePattern = /^[a-z][a-z0-9-]*:[a-z][a-z0-9-]*$/;
 
-  it("provides unique baseline roles", () => {
-    expect(new Set(baseRoles).size).toBe(baseRoles.length);
-    expect(baseRoles).toContain("Super Admin");
-    expect(baseRoles).toContain("Read Only");
+  it("keeps permissions unique and correctly formatted", () => {
+    expect(new Set(basePermissions).size).toBe(basePermissions.length);
+
+    expect(
+      basePermissions.every((permission) =>
+        permissionCodePattern.test(permission),
+      ),
+    ).toBe(true);
   });
 
   it("includes the Phase 2 security permissions", () => {
@@ -44,6 +43,23 @@ describe("shared foundation catalogs", () => {
         "organization-members:remove",
         "sessions:read",
         "sessions:revoke",
+      ]),
+    );
+  });
+
+  it("keeps roles unique and includes required baseline roles", () => {
+    expect(new Set(baseRoles).size).toBe(baseRoles.length);
+    expect(baseRoles).toEqual(
+      expect.arrayContaining([
+        "Super Admin",
+        "Admin",
+        "Sales Manager",
+        "Sales Representative",
+        "Support Manager",
+        "Support Agent",
+        "Warehouse Manager",
+        "Warehouse User",
+        "Read Only",
       ]),
     );
   });

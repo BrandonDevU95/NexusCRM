@@ -9,7 +9,7 @@ su prueba y se revisó el aislamiento por organización.
 - [x] Definir tipos seguros para actor autenticado, contexto de organización y paginación.
 - [x] Agregar permisos de organizaciones, membresías y sesiones.
 - [x] Agregar estados de membresía y nombres de roles compartidos necesarios.
-- [ ] Probar unicidad de catálogos y formato de códigos de permiso.
+- [x] Probar unicidad de catálogos y formato de códigos de permiso.
 
 ## 2. Migración y modelo de entidades
 
