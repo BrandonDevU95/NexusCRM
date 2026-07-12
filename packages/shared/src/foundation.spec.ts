@@ -1,6 +1,7 @@
-import { describe, expect, it } from "vitest";
-import { backendModules } from "./modules.js";
 import { basePermissions, baseRoles } from "./permissions.js";
+import { describe, expect, it } from "vitest";
+
+import { backendModules } from "./modules.js";
 
 describe("shared foundation catalogs", () => {
   it("keeps module names unique and includes security domains", () => {
@@ -26,5 +27,24 @@ describe("shared foundation catalogs", () => {
     expect(new Set(baseRoles).size).toBe(baseRoles.length);
     expect(baseRoles).toContain("Super Admin");
     expect(baseRoles).toContain("Read Only");
+  });
+
+  it("includes the Phase 2 security permissions", () => {
+    expect(basePermissions).toEqual(
+      expect.arrayContaining([
+        "roles:read",
+        "roles:manage",
+        "permissions:read",
+        "permissions:manage",
+        "organizations:read",
+        "organizations:update",
+        "organization-members:create",
+        "organization-members:read",
+        "organization-members:update",
+        "organization-members:remove",
+        "sessions:read",
+        "sessions:revoke",
+      ]),
+    );
   });
 });
