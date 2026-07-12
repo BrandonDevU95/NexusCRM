@@ -27,7 +27,7 @@ describe("shared security contracts", () => {
     }>();
 
     expectTypeOf<PaginatedResult<{ id: string }>>().toEqualTypeOf<{
-      readonly items: { id: string }[];
+      readonly items: readonly { id: string }[];
       readonly meta: {
         readonly page: number;
         readonly pageSize: number;
